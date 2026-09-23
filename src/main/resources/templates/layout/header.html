@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <body>
 
 <!-- ===================== 공통 헤더 fragment 시작 ===================== -->
@@ -9,12 +9,12 @@
 	<!-- 상단 유틸리티 바 : 로그인 상태에 따라 로그인/회원가입 또는 이름+로그아웃 노출 -->
 	<div class="util-bar">
 		<div class="container util-bar-inner">
-			<span th:if="${session.loginUser == null}">
+			<span sec:authorize="isAnonymous()">
 				<a th:href="@{/user/login}">로그인</a>
 				<a th:href="@{/user/join}">회원가입</a>
 			</span>
-			<span th:if="${session.loginUser != null}">
-				<strong th:text="${session.loginUserName}">이름</strong>님 환영합니다
+			<span sec:authorize="isAuthenticated()">
+				<strong th:text="${#authentication.principal.user.name}">이름</strong>님 환영합니다
 				<a th:href="@{/user/logout}">로그아웃</a>
 			</span>
 		</div>
@@ -33,9 +33,9 @@
 		<div class="container">
 			<ul class="gnb-menu">
 				<li><a th:href="@{/policy/list}">정책정보</a></li>
-				<li th:if="${session.loginUser != null}"><a th:href="@{/application/list}">신청내역</a></li>
-				<li th:if="${session.loginRole == true}"><a th:href="@{/admin/member/list}">회원관리</a></li>
-				<li th:if="${session.loginRole == true}"><a th:href="@{/admin/application/list}">신청관리</a></li>
+				<li sec:authorize="isAuthenticated()"><a th:href="@{/application/list}">신청내역</a></li>
+				<li sec:authorize="hasRole('ADMIN')"><a th:href="@{/admin/member/list}">회원관리</a></li>
+				<li sec:authorize="hasRole('ADMIN')"><a th:href="@{/admin/application/list}">신청관리</a></li>
 			</ul>
 		</div>
 	</nav>

@@ -58,9 +58,13 @@ CREATE TABLE APPLICATION (
   USER_ID        VARCHAR2(50)  NOT NULL,                            -- 신청한 회원 아이디 (외래키)
   REASON         VARCHAR2(1000),                                    -- 신청 사유
   STATUS         VARCHAR2(20)  DEFAULT '접수중' NOT NULL
-                 CHECK (STATUS IN ('접수중','승인','반려','취소')),   -- 신청 상태
+                 CHECK (STATUS IN ('접수중','승인','반려','취소')),   -- 신청 상태 (관리자 심사 상태)
   APPLY_DATE     TIMESTAMP     DEFAULT SYSTIMESTAMP NOT NULL,        -- 신청일시
   UPDATE_DATE    TIMESTAMP,                                         -- 상태 변경일시
+  FORWARD_STATUS  VARCHAR2(20)                                      -- 관할 기관 전달 상태 (NULL=미전송). 심사 상태(STATUS)와는 별개 개념
+                 CHECK (FORWARD_STATUS IN ('전송완료','전송실패','수동처리대기')),
+  FORWARD_MESSAGE VARCHAR2(500),                                    -- 전달 결과 메시지 (접수번호 또는 실패/안내 사유)
+  FORWARD_DATE    TIMESTAMP,                                        -- 전달 처리일시
   CONSTRAINT PK_APPLICATION PRIMARY KEY (APP_NO),
   CONSTRAINT FK_APP_POLICY FOREIGN KEY (PNO) REFERENCES POLICY(PNO),
   CONSTRAINT FK_APP_USER   FOREIGN KEY (USER_ID) REFERENCES USERS(USER_ID)

@@ -1,13 +1,14 @@
 package kr.or.oti.youthportal.controller;
 
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import jakarta.servlet.http.HttpSession;
 import kr.or.oti.youthportal.dto.UserJoinDTO;
+import kr.or.oti.youthportal.security.CustomUserDetails;
 import kr.or.oti.youthportal.service.UserService;
 import lombok.RequiredArgsConstructor;
 
@@ -22,9 +23,9 @@ public class UserController {
 
 	//로그인 화면 이동
 	@GetMapping("/login")
-	public String loginGET(HttpSession session) { // 세션을 받아 이미 로그인된 상태인지 확인
+	public String loginGET(@AuthenticationPrincipal CustomUserDetails principal) { // 이미 로그인된 상태인지 확인 (비로그인이면 null)
 
-		if (session.getAttribute("loginUser") != null) { // 이미 로그인한 상태라면
+		if (principal != null) { // 이미 로그인한 상태라면
 			return "redirect:/"; // 로그인 화면으로 다시 갈 필요 없이 메인으로 보냄
 		}
 

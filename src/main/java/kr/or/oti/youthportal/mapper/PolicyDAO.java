@@ -4,7 +4,6 @@ import java.util.List;
 
 import org.apache.ibatis.annotations.Mapper;
 
-import kr.or.oti.youthportal.domain.Policy;
 import kr.or.oti.youthportal.dto.PageRequestDTO;
 import kr.or.oti.youthportal.dto.PolicyDTO;
 
@@ -21,9 +20,9 @@ public interface PolicyDAO {
 
 	List<String> selectDistinctRegions(); // 검색폼 라디오 버튼용 - 현재 저장된 정책들의 지역구명 목록(중복제거)
 
-	int insertPolicy(Policy policy); // 관리자 - 정책 신규 등록
+	int insertPolicy(PolicyDTO policy); // 관리자 - 정책 신규 등록
 
-	int updatePolicy(Policy policy); // 관리자 - 정책 수정
+	int updatePolicy(PolicyDTO policy); // 관리자 - 정책 수정
 
 	int deletePolicy(Long pno); // 관리자 - 정책 삭제
 

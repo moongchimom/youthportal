@@ -2,12 +2,10 @@ package kr.or.oti.youthportal.service; // 서비스(비즈니스 로직) 패키�
 
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import kr.or.oti.youthportal.domain.User;
 import kr.or.oti.youthportal.dto.AdminMemberModifyDTO;
 import kr.or.oti.youthportal.dto.ApplicationDTO;
 import kr.or.oti.youthportal.dto.PageRequestDTO;
@@ -32,13 +30,9 @@ public class AdminServiceImpl implements AdminService{
 	@Override
 	public PageResponseDTO<UserDTO> getMemberList(PageRequestDTO pageRequestDTO) {
 		int total = userDAO.selectMemberTotalCount(pageRequestDTO); // 검색조건에 맞는 전체 회원 수 조회
-		List<User> members = userDAO.selectMemberList(pageRequestDTO); // 검색조건+페이징에 맞는 회원 목록 조회
+		List<UserDTO> members = userDAO.selectMemberList(pageRequestDTO); // 검색조건+페이징에 맞는 회원 목록 조회 (쿼리에서 UPW를 빼고 가져옴)
 
-		List<UserDTO> dtoList = members.stream() // 도메인 엔티티 목록을
-				.map(this::toUserDTO) // 화면용 DTO로 하나씩 변환
-				.collect(Collectors.toList()); // 다시 리스트로 수집
-
-		return PageResponseDTO.of(pageRequestDTO, total, dtoList); // 페이징 정보와 함께 응답 조립
+		return PageResponseDTO.of(pageRequestDTO, total, members); // 페이징 정보와 함께 응답 조립
 	}
 
 	@Override
@@ -55,7 +49,7 @@ public class AdminServiceImpl implements AdminService{
 			throw new IllegalStateException("존재하지 않는 회원입니다."); // 수정 중단
 		}
 
-		User updateTarget = User.builder() // DB에 반영할 대상 생성
+		UserDTO updateTarget = UserDTO.builder() // DB에 반영할 대상 생성
 				.userId(dto.getUserId()) // 수정 대상 아이디
 				.del(dto.isDel()) // 탈퇴 여부 (관리자가 선택한 값)
 				.accountLocked(dto.isAccountLocked()) // 잠금 여부 (관리자가 선택한 값)
@@ -79,20 +73,5 @@ public class AdminServiceImpl implements AdminService{
 			throw new IllegalArgumentException("허용되지 않은 상태값입니다: " + status); // 처리 중단
 		}
 		applicationDAO.updateStatus(appNo, status); // DB에 상태 변경 반영
-	}
-
-	// User 도메인 엔티티를 화면용 UserDTO로 변환하는 내부 헬퍼 메서드
-	private UserDTO toUserDTO(User user) {
-		return UserDTO.builder() // 필드를 하나씩 옮겨 담아 DTO 생성
-				.userId(user.getUserId()) // 아이디
-				.name(user.getName()) // 이름
-				.birthDate(user.getBirthDate()) // 생년월일
-				.phone(user.getPhone()) // 휴대폰 번호
-				.regDate(user.getRegDate()) // 가입일시
-				.role(user.isRole()) // 권한
-				.del(user.isDel()) // 탈퇴 여부
-				.failCount(user.getFailCount()) // 로그인 실패 횟수
-				.accountLocked(user.isAccountLocked()) // 계정 잠금 여부
-				.build(); // 비밀번호(upw)는 화면에 노출하지 않으므로 옮기지 않음
 	}
 }

@@ -24,7 +24,7 @@
 	</select>
 
 	<!-- 신규 회원 등록 (phone/birthDate/socialType/socialId는 카카오 회원의 경우 null일 수 있어 jdbcType 명시 필요) -->
-	<insert id="insertUser" parameterType="kr.or.oti.youthportal.domain.User">
+	<insert id="insertUser" parameterType="kr.or.oti.youthportal.dto.UserDTO">
 		INSERT INTO USERS
 			(USER_ID, UPW, NAME, BIRTH_DATE, PHONE, REG_DATE, ROLE, DEL, FAIL_COUNT, ACCOUNT_LOCKED, SOCIAL_TYPE, SOCIAL_ID)
 		VALUES
@@ -32,9 +32,10 @@
 	</insert>
 
 	<!-- 관리자 화면용 회원 목록 조회 (검색어 있으면 아이디/이름 부분일치, 최신가입순, 페이징) -->
-	<select id="selectMemberList" parameterType="kr.or.oti.youthportal.dto.PageRequestDTO" resultType="kr.or.oti.youthportal.domain.User">
+	<!-- UPW(비밀번호 해시)는 의도적으로 뽑지 않음 - 관리자 목록 화면에 필요 없는 값이 뷰까지 딸려가지 않도록 쿼리 단계에서 차단 -->
+	<select id="selectMemberList" parameterType="kr.or.oti.youthportal.dto.PageRequestDTO" resultType="kr.or.oti.youthportal.dto.UserDTO">
 		SELECT
-			USER_ID, UPW, NAME, BIRTH_DATE, PHONE, REG_DATE,
+			USER_ID, NAME, BIRTH_DATE, PHONE, REG_DATE,
 			ROLE, DEL, FAIL_COUNT, ACCOUNT_LOCKED
 		FROM USERS
 		<where>
@@ -58,7 +59,7 @@
 	</select>
 
 	<!-- 관리자에 의한 회원 정보 수정 (탈퇴/잠금/실패횟수) 및 로그인 실패 처리 공용 -->
-	<update id="updateMemberByAdmin" parameterType="kr.or.oti.youthportal.domain.User">
+	<update id="updateMemberByAdmin" parameterType="kr.or.oti.youthportal.dto.UserDTO">
 		UPDATE USERS
 		SET DEL = #{del},
 			ACCOUNT_LOCKED = #{accountLocked},

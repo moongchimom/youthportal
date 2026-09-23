@@ -109,7 +109,7 @@
 	</select>
 
 	<!-- 정책 등록: PNO는 IDENTITY 자동채번 (시퀀스 없음). keyColumn 명시 필요 - 없으면 Oracle 드라이버가 ROWID를 반환해 NumberFormatException 발생 -->
-	<insert id="insertPolicy" parameterType="kr.or.oti.youthportal.domain.Policy" useGeneratedKeys="true" keyProperty="pno" keyColumn="PNO">
+	<insert id="insertPolicy" parameterType="kr.or.oti.youthportal.dto.PolicyDTO" useGeneratedKeys="true" keyProperty="pno" keyColumn="PNO">
 		INSERT INTO POLICY
 			(SOURCE_ID, TITLE, CONTENT, CATEGORY, REGION, TARGET_AGE, START_DATE, END_DATE, APPLY_START_DATE, APPLY_END_DATE, REG_DATE)
 		VALUES
@@ -117,7 +117,7 @@
 	</insert>
 
 	<!-- 정책 수정 (등록일시는 변경하지 않음) -->
-	<update id="updatePolicy" parameterType="kr.or.oti.youthportal.domain.Policy">
+	<update id="updatePolicy" parameterType="kr.or.oti.youthportal.dto.PolicyDTO">
 		UPDATE POLICY
 		SET TITLE = #{title},
 			CONTENT = #{content},

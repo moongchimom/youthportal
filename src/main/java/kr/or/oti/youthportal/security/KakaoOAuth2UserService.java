@@ -12,7 +12,6 @@ import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 
-import kr.or.oti.youthportal.domain.User;
 import kr.or.oti.youthportal.dto.UserDTO;
 import kr.or.oti.youthportal.mapper.UserDAO;
 import lombok.RequiredArgsConstructor;
@@ -40,7 +39,7 @@ public class KakaoOAuth2UserService implements OAuth2UserService<OAuth2UserReque
 		UserDTO existing = userDAO.selectById(userId); // 이미 연동된 계정인지 확인
 
 		if (existing == null) { // 처음 카카오로 로그인하는 사용자라면 신규 등록
-			User newUser = User.builder()
+			UserDTO newUser = UserDTO.builder()
 					.userId(userId)
 					.upw(passwordEncoder.encode(UUID.randomUUID().toString())) // 카카오 로그인은 비밀번호를 안 쓰지만 컬럼이 NOT NULL이라 랜덤값으로 채움
 					.name(nickname)

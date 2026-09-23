@@ -15,7 +15,6 @@ import org.springframework.web.servlet.support.SessionFlashMapManager;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import kr.or.oti.youthportal.domain.User;
 import kr.or.oti.youthportal.dto.UserDTO;
 import kr.or.oti.youthportal.mapper.UserDAO;
 import lombok.RequiredArgsConstructor;
@@ -78,7 +77,7 @@ public class LoginFailureHandler implements AuthenticationFailureHandler {
 		int failCount = user.getFailCount() + 1;
 		boolean lock = failCount >= MAX_FAIL_COUNT;
 
-		User updateTarget = User.builder()
+		UserDTO updateTarget = UserDTO.builder()
 				.userId(user.getUserId())
 				.del(user.isDel())
 				.failCount(failCount)

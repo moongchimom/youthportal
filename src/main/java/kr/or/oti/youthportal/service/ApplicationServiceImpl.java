@@ -6,8 +6,6 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import kr.or.oti.youthportal.domain.Application;
-import kr.or.oti.youthportal.domain.ApplicationFile;
 import kr.or.oti.youthportal.dto.ApplicationApplyDTO;
 import kr.or.oti.youthportal.dto.ApplicationDTO;
 import kr.or.oti.youthportal.dto.ApplicationFileDTO;
@@ -28,7 +26,7 @@ public class ApplicationServiceImpl implements ApplicationService{
 	@Transactional
 	public Long applyPolicy(ApplicationApplyDTO dto, String userId) {
 
-		Application application = Application.builder() // 신청 DTO + 로그인 아이디 -> 도메인 엔티티 변환
+		ApplicationDTO application = ApplicationDTO.builder() // 신청 폼 DTO + 로그인 아이디 -> 저장용 객체 조립
 				.pno(dto.getPno()) // 신청 대상 정책 번호
 				.userId(userId) // 서버에서 주입한 로그인 아이디 (클라이언트 값 신뢰하지 않음)
 				.reason(dto.getReason()) // 신청 사유
@@ -43,7 +41,7 @@ public class ApplicationServiceImpl implements ApplicationService{
 
 	@Override
 	public void addFile(Long appNo, String savedName, String originalName) {
-		ApplicationFile file = ApplicationFile.builder() // 첨부파일 정보를 도메인 엔티티로 변환
+		ApplicationFileDTO file = ApplicationFileDTO.builder() // 첨부파일 정보를 저장용 객체로 조립
 				.appNo(appNo) // 소속 신청 번호
 				.savedName(savedName) // 서버 저장 파일명
 				.originalName(originalName) // 원본 파일명

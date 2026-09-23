@@ -27,9 +27,10 @@ public class SecurityConfig {
 	@Bean
 	public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 		http
-			// 관리자 화면만 새로 권한 체크 (기존 AdminInterceptor를 1:1로 대체, 나머지 경로는 기존처럼 컨트롤러가 알아서 처리)
+			// 접근 권한은 전부 여기서 결정 - 컨트롤러 안에서 로그인 여부를 일일이 검사하지 않음
 			.authorizeHttpRequests(auth -> auth
 					.requestMatchers("/admin/**").hasRole("ADMIN")
+					.requestMatchers("/application/**").authenticated() // 신청 관련 화면은 전부 로그인 필수 (비로그인은 로그인 화면으로 유도됨)
 					.anyRequest().permitAll()
 			)
 			// 일반 로그인 (아이디/비밀번호 폼, 필드명은 login.html의 input name과 맞춤)

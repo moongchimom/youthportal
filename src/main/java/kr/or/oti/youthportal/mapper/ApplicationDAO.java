@@ -5,14 +5,13 @@ import java.util.List;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
-import kr.or.oti.youthportal.domain.Application;
 import kr.or.oti.youthportal.dto.ApplicationDTO;
 import kr.or.oti.youthportal.dto.PageRequestDTO;
 
 @Mapper // 스프링이 이 인터페이스를 빈으로 등록하고 MyBatis 매퍼로 연결
 public interface ApplicationDAO { // 신청 관련 SQL을 수행하는 매퍼 인터페이스 (중복신청 방지는 다이어그램 충실도를 위해 의도적으로 미포함)
 
-	int insertApplication(Application application); // 신청 등록 (성공 시 application.appNo에 채번된 번호가 채워짐)
+	int insertApplication(ApplicationDTO application); // 신청 등록 (성공 시 application.appNo에 채번된 번호가 채워짐)
 
 	ApplicationDTO selectById(Long appNo); // 신청 번호로 상세 조회 (정책명/회원명 포함)
 

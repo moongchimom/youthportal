@@ -9,6 +9,7 @@ import java.nio.file.Paths;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -19,7 +20,6 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
 
 import kr.or.oti.youthportal.dto.ApplicationApplyDTO;
 import kr.or.oti.youthportal.dto.ApplicationDTO;
@@ -29,6 +29,7 @@ import kr.or.oti.youthportal.dto.PageResponseDTO;
 import kr.or.oti.youthportal.dto.PolicyDTO;
 import kr.or.oti.youthportal.dto.UploadFileDTO;
 import kr.or.oti.youthportal.dto.UploadResultDTO;
+import kr.or.oti.youthportal.security.CustomUserDetails;
 import kr.or.oti.youthportal.service.ApplicationService;
 import kr.or.oti.youthportal.service.PolicyService;
 import lombok.RequiredArgsConstructor;
@@ -55,18 +56,13 @@ public class ApplicationController {
 	
 
 	// 신청서 제출 처리 (첨부파일 저장은 UpDownController에 실제로 위임함)
+	// 비로그인 차단은 SecurityConfig가 담당하므로 principal은 여기 도달한 시점에 항상 존재함 (아래 메서드들도 동일)
 	@PostMapping("/apply")
-	public String applyPOST(ApplicationApplyDTO dto, UploadFileDTO uploadFileDTO, HttpSession session, RedirectAttributes rttr) {
-
-		String loginUserId = (String) session.getAttribute("loginUser");
-
-		//비회원인 상태로 진입 시 로그인 페이지로 이동
-		if (loginUserId == null) {
-			return "redirect:/user/login"; // 기존 코드의 오타(/member/login)를 실제 로그인 경로로 수정
-		}
+	public String applyPOST(ApplicationApplyDTO dto, UploadFileDTO uploadFileDTO,
+			@AuthenticationPrincipal CustomUserDetails principal, RedirectAttributes rttr) {
 
 		//서버에서 작성자 주입 후 신청 등록, 첨부파일을 이어붙일 수 있도록 생성된 신청번호를 받음
-		Long appNo = applicationService.applyPolicy(dto, loginUserId);
+		Long appNo = applicationService.applyPolicy(dto, principal.getUsername());
 
 		int attemptedCount = countNonEmptyFiles(uploadFileDTO); // 실제로 선택된 파일 개수 (일부 실패 여부 판단 기준)
 
@@ -101,31 +97,17 @@ public class ApplicationController {
 
 	// 내 신청 목록 화면 (페이징)
 	@GetMapping("/list")
-	public void myApplicationList(HttpSession session, PageRequestDTO pageRequestDTO, Model model) {
-		String loginUserId = (String) session.getAttribute("loginUser"); // 로그인한 회원 아이디
-
-		if (loginUserId == null) { // 비로그인 상태라면
-			model.addAttribute("error", "로그인이 필요합니다."); // 화면에서 안내 문구를 보여주도록 전달
-			return; // 목록 조회 없이 종료
-		}
-
-		PageResponseDTO<ApplicationDTO> responseDTO = applicationService.getMyApplications(loginUserId, pageRequestDTO); // 내 신청 목록+페이징 조회
+	public void myApplicationList(@AuthenticationPrincipal CustomUserDetails principal, PageRequestDTO pageRequestDTO, Model model) {
+		PageResponseDTO<ApplicationDTO> responseDTO = applicationService.getMyApplications(principal.getUsername(), pageRequestDTO); // 내 신청 목록+페이징 조회
 		model.addAttribute("responseDTO", responseDTO); // 뷰에 전달
 		model.addAttribute("pageRequestDTO", pageRequestDTO); // 페이지네이션 링크 생성을 위해 전달
 	}
 
 	// 신청 상세 화면 (본인 신청만 조회 가능, 첨부파일 목록도 함께 표시)
 	@GetMapping("/read")
-	public void applicationDetail(Long appNo, HttpSession session, Model model) {
-		String loginUserId = (String) session.getAttribute("loginUser"); // 로그인한 회원 아이디
-
-		if (loginUserId == null) { // 비로그인 상태라면
-			model.addAttribute("error", "로그인이 필요합니다."); // 화면에서 안내 문구를 보여주도록 전달
-			return; // 조회 없이 종료
-		}
-
+	public void applicationDetail(Long appNo, @AuthenticationPrincipal CustomUserDetails principal, Model model) {
 		try {
-			ApplicationDTO application = applicationService.getApplication(appNo, loginUserId); // 소유자 검증 포함 상세 조회
+			ApplicationDTO application = applicationService.getApplication(appNo, principal.getUsername()); // 소유자 검증 포함 상세 조회
 			model.addAttribute("dto", application); // 뷰에 전달
 
 			List<ApplicationFileDTO> fileList = applicationService.getFiles(appNo); // 첨부파일 목록 조회
@@ -137,15 +119,7 @@ public class ApplicationController {
 
 	// 첨부파일 다운로드 (본인 또는 관리자만 가능 - /uploads/**로 누구나 내려받던 것을 대체)
 	@GetMapping("/download")
-	public void download(Long fileNo, HttpSession session, HttpServletResponse response) throws IOException {
-		String loginUserId = (String) session.getAttribute("loginUser"); // 로그인한 회원 아이디
-		Boolean loginRole = (Boolean) session.getAttribute("loginRole"); // 관리자 여부
-
-		if (loginUserId == null) { // 비로그인 상태라면
-			response.sendError(HttpServletResponse.SC_FORBIDDEN); // 403 응답
-			return;
-		}
-
+	public void download(Long fileNo, @AuthenticationPrincipal CustomUserDetails principal, HttpServletResponse response) throws IOException {
 		ApplicationFileDTO file;
 		try {
 			file = applicationService.getFile(fileNo); // 파일 번호로 첨부파일 정보 조회
@@ -162,8 +136,8 @@ public class ApplicationController {
 			return;
 		}
 
-		boolean isOwner = application.getUserId().equals(loginUserId); // 본인 신청인지 확인
-		boolean isAdmin = Boolean.TRUE.equals(loginRole); // 관리자인지 확인
+		boolean isOwner = application.getUserId().equals(principal.getUsername()); // 본인 신청인지 확인
+		boolean isAdmin = principal.getUser().isRole(); // 관리자인지 확인
 
 		if (!isOwner && !isAdmin) { // 본인도 관리자도 아니라면
 			response.sendError(HttpServletResponse.SC_FORBIDDEN); // 403 응답 (다른 사람 첨부파일 접근 차단)
@@ -186,15 +160,9 @@ public class ApplicationController {
 
 	// 신청 취소 처리 (본인 신청만 취소 가능)
 	@PostMapping("/cancel")
-	public String cancelApplication(Long appNo, HttpSession session, RedirectAttributes rttr) {
-		String loginUserId = (String) session.getAttribute("loginUser"); // 로그인한 회원 아이디
-
-		if (loginUserId == null) { // 비로그인 상태라면
-			return "redirect:/user/login"; // 로그인 화면으로 이동
-		}
-
+	public String cancelApplication(Long appNo, @AuthenticationPrincipal CustomUserDetails principal, RedirectAttributes rttr) {
 		try {
-			applicationService.cancel(appNo, loginUserId); // 소유자 검증 포함 취소 처리
+			applicationService.cancel(appNo, principal.getUsername()); // 소유자 검증 포함 취소 처리
 			rttr.addFlashAttribute("result", "신청이 취소되었습니다."); // 성공 메시지
 		} catch (IllegalStateException e) { // 존재하지 않거나 본인 소유가 아니거나 이미 취소된 경우
 			rttr.addFlashAttribute("error", e.getMessage()); // 실패 사유 전달

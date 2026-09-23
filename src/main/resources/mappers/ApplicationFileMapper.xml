@@ -8,7 +8,7 @@
 <mapper namespace="kr.or.oti.youthportal.mapper.ApplicationFileDAO">
 
 	<!-- 첨부파일 등록: FILE_NO는 IDENTITY 자동채번. keyColumn 명시 필요 (Oracle ROWID 이슈 회피) -->
-	<insert id="insertFile" parameterType="kr.or.oti.youthportal.domain.ApplicationFile" useGeneratedKeys="true" keyProperty="fileNo" keyColumn="FILE_NO">
+	<insert id="insertFile" parameterType="kr.or.oti.youthportal.dto.ApplicationFileDTO" useGeneratedKeys="true" keyProperty="fileNo" keyColumn="FILE_NO">
 		INSERT INTO APPLICATION_FILE
 			(APP_NO, SAVED_NAME, ORIGINAL_NAME, UPLOAD_DATE)
 		VALUES

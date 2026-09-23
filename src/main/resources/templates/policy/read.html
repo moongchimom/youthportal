@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
 	<meta charset="UTF-8">
 	<title th:text="${dto.title} + ' - 청년정책포탈'">정책 상세 - 청년정책포탈</title>
@@ -59,8 +59,8 @@
 
 				<div>
 					<!-- 로그인한 회원만 신청 가능 -->
-					<a th:if="${session.loginUser != null}" th:href="@{/application/apply(pno=${dto.pno})}" class="btn btn-primary">신청하기</a>
-					<a th:if="${session.loginUser == null}" th:href="@{/user/login}" class="btn btn-primary">로그인 후 신청하기</a>
+					<a sec:authorize="isAuthenticated()" th:href="@{/application/apply(pno=${dto.pno})}" class="btn btn-primary">신청하기</a>
+					<a sec:authorize="isAnonymous()" th:href="@{/user/login}" class="btn btn-primary">로그인 후 신청하기</a>
 
 					<!-- 수동 등록/수정/삭제 화면은 제거됨 - 정책은 공공데이터 API 가져오기로만 채워짐 -->
 				</div>

@@ -8,7 +8,6 @@ import org.springframework.stereotype.Service;
 
 import kr.or.oti.youthportal.client.PolicyApiClient;
 import kr.or.oti.youthportal.client.PolicyApiMapper;
-import kr.or.oti.youthportal.domain.Policy;
 import kr.or.oti.youthportal.dto.PageRequestDTO;
 import kr.or.oti.youthportal.dto.PageResponseDTO;
 import kr.or.oti.youthportal.dto.PolicyDTO;
@@ -47,39 +46,13 @@ public class PolicyServiceImpl implements PolicyService{
 
 	@Override
 	public void registerPolicy(PolicyDTO dto) {
-		Policy policy = Policy.builder() // DTO -> 도메인 엔티티 변환
-				.sourceId(dto.getSourceId()) // 정책 출처 ID (API로 가져온 경우만 값이 있음, 수동 등록 시엔 null)
-				.title(dto.getTitle()) // 제목
-				.content(dto.getContent()) // 내용
-				.category(dto.getCategory()) // 분류
-				.region(dto.getRegion()) // 지역구명
-				.targetAge(dto.getTargetAge()) // 대상 연령
-				.startDate(dto.getStartDate()) // 시작일
-				.endDate(dto.getEndDate()) // 종료일
-				.applyStartDate(dto.getApplyStartDate()) // 신청 시작일
-				.applyEndDate(dto.getApplyEndDate()) // 신청 마감일 ("마감" 여부 판단 기준)
-				.regDate(LocalDateTime.now()) // 등록일시는 서버 시간으로 고정
-				.build(); // 객체 생성
-
-		policyDAO.insertPolicy(policy); // DB에 등록
+		dto.setRegDate(LocalDateTime.now()); // 등록일시는 클라이언트 값을 믿지 않고 서버 시간으로 고정
+		policyDAO.insertPolicy(dto); // DB에 등록
 	}
 
 	@Override
 	public void modifyPolicy(PolicyDTO dto) {
-		Policy policy = Policy.builder() // DTO -> 도메인 엔티티 변환 (수정 대상)
-				.pno(dto.getPno()) // 수정할 정책 번호
-				.title(dto.getTitle()) // 제목
-				.content(dto.getContent()) // 내용
-				.category(dto.getCategory()) // 분류
-				.region(dto.getRegion()) // 지역구명
-				.targetAge(dto.getTargetAge()) // 대상 연령
-				.startDate(dto.getStartDate()) // 시작일
-				.endDate(dto.getEndDate()) // 종료일
-				.applyStartDate(dto.getApplyStartDate()) // 신청 시작일
-				.applyEndDate(dto.getApplyEndDate()) // 신청 마감일 ("마감" 여부 판단 기준)
-				.build(); // 객체 생성 (등록일시는 수정하지 않으므로 세팅하지 않음)
-
-		policyDAO.updatePolicy(policy); // DB에 수정 반영
+		policyDAO.updatePolicy(dto); // DB에 수정 반영 (UPDATE 문에 REG_DATE가 없어 등록일시는 그대로 유지됨)
 	}
 
 	@Override

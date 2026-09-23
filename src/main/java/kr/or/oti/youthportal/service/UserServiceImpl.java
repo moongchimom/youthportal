@@ -6,7 +6,7 @@ import org.springframework.stereotype.Service;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-import kr.or.oti.youthportal.domain.User;
+import kr.or.oti.youthportal.dto.UserDTO;
 import kr.or.oti.youthportal.dto.UserJoinDTO;
 import kr.or.oti.youthportal.mapper.UserDAO;
 import lombok.RequiredArgsConstructor;
@@ -33,9 +33,9 @@ public class UserServiceImpl implements UserService{
 			throw new IllegalStateException("비밀번호가 일치하지 않습니다."); // 가입 중단
 		}
 
-		//UserJoin -> User 변환
+		//UserJoinDTO -> 저장용 UserDTO 변환
 
-		User user = User.builder()
+		UserDTO user = UserDTO.builder()
 		        .userId(userJoinDTO.getUserId())
 		        .upw(passwordEncoder.encode(userJoinDTO.getUpw())) // BCrypt로 해시해서 저장 (평문 저장 금지)
 		        .name(userJoinDTO.getName())

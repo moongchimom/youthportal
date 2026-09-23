@@ -9,13 +9,12 @@ import org.springframework.stereotype.Component;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
-import kr.or.oti.youthportal.domain.User;
 import kr.or.oti.youthportal.dto.UserDTO;
 import kr.or.oti.youthportal.mapper.UserDAO;
 import lombok.RequiredArgsConstructor;
 
-// 폼 로그인/카카오 로그인 공용 - 로그인 성공 시 header.html 등 기존 화면이 그대로 읽는 세션 속성을 채워주는 역할
+// 폼 로그인/카카오 로그인 공용 - 로그인 성공 시 누적된 실패횟수를 초기화하는 역할
+// 로그인 사용자 정보는 SecurityContext의 principal(CustomUserDetails)이 유일한 출처이며, 별도로 세션에 복사하지 않음
 @Component
 @RequiredArgsConstructor
 public class LoginSuccessHandler implements AuthenticationSuccessHandler {
@@ -29,8 +28,8 @@ public class LoginSuccessHandler implements AuthenticationSuccessHandler {
 		CustomUserDetails principal = (CustomUserDetails) authentication.getPrincipal();
 		UserDTO user = principal.getUser();
 
-		if (user.getFailCount() > 0) { // 과거 로그인 실패 기록이 남아있다면 초기화 (기존 UserServiceImpl.login()과 동일한 로직)
-			User resetTarget = User.builder()
+		if (user.getFailCount() > 0) { // 과거 로그인 실패 기록이 남아있다면 초기화
+			UserDTO resetTarget = UserDTO.builder()
 					.userId(user.getUserId())
 					.del(user.isDel())
 					.failCount(0)
@@ -38,11 +37,6 @@ public class LoginSuccessHandler implements AuthenticationSuccessHandler {
 					.build();
 			userDAO.updateMemberByAdmin(resetTarget);
 		}
-
-		HttpSession session = request.getSession();
-		session.setAttribute("loginUser", user.getUserId());
-		session.setAttribute("loginUserName", user.getName());
-		session.setAttribute("loginRole", user.isRole());
 
 		response.sendRedirect(request.getContextPath() + "/");
 	}

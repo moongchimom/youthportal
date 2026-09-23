@@ -22,7 +22,7 @@
 
 	<!-- 신청 등록: APP_NO는 IDENTITY 자동채번 (시퀀스 없음). keyColumn 명시 필요 - 없으면 Oracle 드라이버가 ROWID를 반환해 NumberFormatException 발생 -->
 	<!-- 첨부파일은 더 이상 이 테이블에 저장하지 않음 - APPLICATION_FILE 테이블에 1:N으로 별도 저장 (ApplicationFileDAO 참고) -->
-	<insert id="insertApplication" parameterType="kr.or.oti.youthportal.domain.Application" useGeneratedKeys="true" keyProperty="appNo" keyColumn="APP_NO">
+	<insert id="insertApplication" parameterType="kr.or.oti.youthportal.dto.ApplicationDTO" useGeneratedKeys="true" keyProperty="appNo" keyColumn="APP_NO">
 		INSERT INTO APPLICATION
 			(PNO, USER_ID, REASON, STATUS, APPLY_DATE)
 		VALUES
