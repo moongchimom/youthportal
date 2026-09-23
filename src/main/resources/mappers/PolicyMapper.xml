@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- MyBatis 매퍼 XML 문서 선언 -->
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- namespace는 반드시 매핑되는 인터페이스의 전체 경로와 일치해야 함 -->
+<mapper namespace="kr.or.oti.youthportal.mapper.PolicyDAO">
+
+	<!-- 정책 목록 조회: 검색어+검색대상(title/content), 지역구 검색, 마감포함여부, 시작일 범위, 최신등록순 정렬, 페이징 -->
+	<select id="selectList" parameterType="kr.or.oti.youthportal.dto.PageRequestDTO" resultType="kr.or.oti.youthportal.dto.PolicyDTO">
+		SELECT
+			PNO, SOURCE_ID, TITLE, CONTENT, CATEGORY, REGION, TARGET_AGE, START_DATE, END_DATE, APPLY_START_DATE, APPLY_END_DATE, REG_DATE
+		FROM POLICY
+		<where>
+			<!-- 검색어와 검색대상이 모두 지정된 경우에만 제목/내용 조건을 OR로 결합 (체크박스 값은 title/content) -->
+			<if test="keyword != null and keyword != '' and types != null and types.length > 0">
+				AND (
+				<foreach collection="types" item="type" separator=" OR ">
+					<choose>
+						<when test="type == 'title'">TITLE LIKE '%' || #{keyword} || '%'</when>
+						<when test="type == 'content'">CONTENT LIKE '%' || #{keyword} || '%'</when>
+						<otherwise>1=0</otherwise>
+					</choose>
+				</foreach>
+				)
+			</if>
+			<!-- 지역구 검색어가 있으면 REGION에 포함되는지 확인 -->
+			<if test="region != null and region != ''">
+				AND REGION LIKE '%' || #{region} || '%'
+			</if>
+			<!-- finished가 false(기본값)이면 신청기간이 아직 안 끝난 정책만 노출 (신청마감일 없는 상시신청도 포함).
+			     "마감" 여부는 사업기간(END_DATE)이 아니라 신청기간(APPLY_END_DATE) 기준으로 판단 -->
+			<if test="!finished">
+				AND (APPLY_END_DATE &gt;= TRUNC(SYSDATE) OR APPLY_END_DATE IS NULL)
+			</if>
+			<!-- 검색 시작일이 지정되면 정책 시작일이 그 이후인 것만 -->
+			<if test="from != null">
+				AND START_DATE &gt;= #{from}
+			</if>
+			<!-- 검색 종료일이 지정되면 정책 시작일이 그 이전인 것만 -->
+			<if test="to != null">
+				AND START_DATE &lt;= #{to}
+			</if>
+		</where>
+		ORDER BY REG_DATE DESC
+		OFFSET #{skip} ROWS FETCH NEXT #{size} ROWS ONLY
+	</select>
+
+	<!-- 정책 전체 건수 조회 (목록조회와 동일한 검색조건, 페이징 계산용) -->
+	<select id="selectTotalCount" parameterType="kr.or.oti.youthportal.dto.PageRequestDTO" resultType="int">
+		SELECT COUNT(*)
+		FROM POLICY
+		<where>
+			<if test="keyword != null and keyword != '' and types != null and types.length > 0">
+				AND (
+				<foreach collection="types" item="type" separator=" OR ">
+					<choose>
+						<when test="type == 'title'">TITLE LIKE '%' || #{keyword} || '%'</when>
+						<when test="type == 'content'">CONTENT LIKE '%' || #{keyword} || '%'</when>
+						<otherwise>1=0</otherwise>
+					</choose>
+				</foreach>
+				)
+			</if>
+			<if test="region != null and region != ''">
+				AND REGION LIKE '%' || #{region} || '%'
+			</if>
+			<if test="!finished">
+				AND (APPLY_END_DATE &gt;= TRUNC(SYSDATE) OR APPLY_END_DATE IS NULL)
+			</if>
+			<if test="from != null">
+				AND START_DATE &gt;= #{from}
+			</if>
+			<if test="to != null">
+				AND START_DATE &lt;= #{to}
+			</if>
+		</where>
+	</select>
+
+	<!-- 정책 번호로 상세 조회 -->
+	<select id="selectOne" parameterType="long" resultType="kr.or.oti.youthportal.dto.PolicyDTO">
+		SELECT
+			PNO, SOURCE_ID, TITLE, CONTENT, CATEGORY, REGION, TARGET_AGE, START_DATE, END_DATE, APPLY_START_DATE, APPLY_END_DATE, REG_DATE
+		FROM POLICY
+		WHERE PNO = #{pno}
+	</select>
+
+	<!-- 검색폼 드롭다운용 - 현재 저장된 정책들의 지역구명 목록(중복제거, 가나다순 + 중앙부처/기타는 맨 아래로) -->
+	<select id="selectDistinctRegions" resultType="string">
+		SELECT DISTINCT REGION
+		FROM POLICY
+		WHERE REGION IS NOT NULL
+		ORDER BY
+			CASE REGION
+				WHEN '중앙부처' THEN 1 <!-- 일반 지역(0)보다 뒤, 기타(2)보다 앞에 오도록 -->
+				WHEN '기타' THEN 2     <!-- 항상 맨 마지막에 오도록 -->
+				ELSE 0                 <!-- 서울/부산 등 일반 지역은 그룹 0으로 묶어서 가나다순 정렬 -->
+			END,
+			REGION <!-- 같은 그룹(0) 안에서는 이 가나다순 정렬이 적용됨 -->
+	</select>
+
+	<!-- 출처ID(외부 API의 plcyNo)로 조회 - 이미 가져온 정책인지 확인해 중복 저장을 막는 용도 -->
+	<select id="selectBySourceId" parameterType="string" resultType="kr.or.oti.youthportal.dto.PolicyDTO">
+		SELECT
+			PNO, SOURCE_ID, TITLE, CONTENT, CATEGORY, REGION, TARGET_AGE, START_DATE, END_DATE, APPLY_START_DATE, APPLY_END_DATE, REG_DATE
+		FROM POLICY
+		WHERE SOURCE_ID = #{sourceId}
+	</select>
+
+	<!-- 정책 등록: PNO는 IDENTITY 자동채번 (시퀀스 없음). keyColumn 명시 필요 - 없으면 Oracle 드라이버가 ROWID를 반환해 NumberFormatException 발생 -->
+	<insert id="insertPolicy" parameterType="kr.or.oti.youthportal.domain.Policy" useGeneratedKeys="true" keyProperty="pno" keyColumn="PNO">
+		INSERT INTO POLICY
+			(SOURCE_ID, TITLE, CONTENT, CATEGORY, REGION, TARGET_AGE, START_DATE, END_DATE, APPLY_START_DATE, APPLY_END_DATE, REG_DATE)
+		VALUES
+			(#{sourceId,jdbcType=VARCHAR}, #{title}, #{content}, #{category}, #{region,jdbcType=VARCHAR}, #{targetAge,jdbcType=VARCHAR}, #{startDate,jdbcType=DATE}, #{endDate,jdbcType=DATE}, #{applyStartDate,jdbcType=DATE}, #{applyEndDate,jdbcType=DATE}, #{regDate})
+	</insert>
+
+	<!-- 정책 수정 (등록일시는 변경하지 않음) -->
+	<update id="updatePolicy" parameterType="kr.or.oti.youthportal.domain.Policy">
+		UPDATE POLICY
+		SET TITLE = #{title},
+			CONTENT = #{content},
+			CATEGORY = #{category},
+			REGION = #{region,jdbcType=VARCHAR},
+			TARGET_AGE = #{targetAge,jdbcType=VARCHAR},
+			START_DATE = #{startDate,jdbcType=DATE},
+			END_DATE = #{endDate,jdbcType=DATE},
+			APPLY_START_DATE = #{applyStartDate,jdbcType=DATE},
+			APPLY_END_DATE = #{applyEndDate,jdbcType=DATE}
+		WHERE PNO = #{pno}
+	</update>
+
+	<!-- 정책 삭제 (신청 내역이 있으면 FK 제약으로 실패 -> 서비스에서 예외 변환) -->
+	<delete id="deletePolicy" parameterType="long">
+		DELETE FROM POLICY
+		WHERE PNO = #{pno}
+	</delete>
+
+</mapper>

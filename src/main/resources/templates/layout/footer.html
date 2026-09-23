@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<!-- ===================== 공통 푸터 fragment 시작 ===================== -->
+<footer th:fragment="footer" class="site-footer">
+	<div class="container footer-inner">
+		<p class="footer-title">청년정책포탈</p>
+		<p class="footer-desc">본 사이트는 학습 목적의 프로젝트이며, 실제 정부 서비스와 무관합니다.</p>
+		<p class="footer-copy">&copy; 2026 youthportal. All rights reserved.</p>
+	</div>
+</footer>
+
+<!-- Bootstrap 5 자바스크립트 번들 (jsdelivr CDN) : 모든 페이지 공통으로 마지막에 로드 -->
+<script th:fragment="scripts" src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<!-- ===================== 공통 푸터 fragment 끝 ===================== -->
+
+</body>
+</html>

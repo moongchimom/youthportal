@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- MyBatis 매퍼 XML 문서 선언 -->
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- namespace는 반드시 매핑되는 인터페이스의 전체 경로와 일치해야 함 -->
+<mapper namespace="kr.or.oti.youthportal.mapper.ApplicationFileDAO">
+
+	<!-- 첨부파일 등록: FILE_NO는 IDENTITY 자동채번. keyColumn 명시 필요 (Oracle ROWID 이슈 회피) -->
+	<insert id="insertFile" parameterType="kr.or.oti.youthportal.domain.ApplicationFile" useGeneratedKeys="true" keyProperty="fileNo" keyColumn="FILE_NO">
+		INSERT INTO APPLICATION_FILE
+			(APP_NO, SAVED_NAME, ORIGINAL_NAME, UPLOAD_DATE)
+		VALUES
+			(#{appNo}, #{savedName}, #{originalName}, #{uploadDate})
+	</insert>
+
+	<!-- 특정 신청에 첨부된 파일 목록 조회 (업로드 순서대로) -->
+	<select id="selectByAppNo" parameterType="long" resultType="kr.or.oti.youthportal.dto.ApplicationFileDTO">
+		SELECT
+			FILE_NO AS fileNo,
+			APP_NO AS appNo,
+			SAVED_NAME AS savedName,
+			ORIGINAL_NAME AS originalName
+		FROM APPLICATION_FILE
+		WHERE APP_NO = #{appNo}
+		ORDER BY FILE_NO ASC
+	</select>
+
+	<!-- 파일 번호로 단건 조회 (다운로드 엔드포인트에서 소유자 확인용 appNo와 함께 사용) -->
+	<select id="selectOne" parameterType="long" resultType="kr.or.oti.youthportal.dto.ApplicationFileDTO">
+		SELECT
+			FILE_NO AS fileNo,
+			APP_NO AS appNo,
+			SAVED_NAME AS savedName,
+			ORIGINAL_NAME AS originalName
+		FROM APPLICATION_FILE
+		WHERE FILE_NO = #{fileNo}
+	</select>
+
+</mapper>

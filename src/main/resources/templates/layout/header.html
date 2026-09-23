@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<!-- ===================== 공통 헤더 fragment 시작 ===================== -->
+<!-- 정부24 스타일을 참고: 상단 유틸바 -> 로고/검색 헤더 -> 파란색 GNB 순서로 구성 -->
+<header th:fragment="header">
+
+	<!-- 상단 유틸리티 바 : 로그인 상태에 따라 로그인/회원가입 또는 이름+로그아웃 노출 -->
+	<div class="util-bar">
+		<div class="container util-bar-inner">
+			<span th:if="${session.loginUser == null}">
+				<a th:href="@{/user/login}">로그인</a>
+				<a th:href="@{/user/join}">회원가입</a>
+			</span>
+			<span th:if="${session.loginUser != null}">
+				<strong th:text="${session.loginUserName}">이름</strong>님 환영합니다
+				<a th:href="@{/user/logout}">로그아웃</a>
+			</span>
+		</div>
+	</div>
+
+	<!-- 메인 헤더 : 사이트 로고/타이틀 -->
+	<div class="main-header">
+		<div class="container main-header-inner">
+			<a th:href="@{/}" class="site-logo">청년정책포탈</a>
+			<a th:href="@{/policy/list}" class="header-search-link">정책 찾아보기</a>
+		</div>
+	</div>
+
+	<!-- GNB(전역 내비게이션) : 정책정보 / 신청내역 / 관리자 -->
+	<nav class="gnb">
+		<div class="container">
+			<ul class="gnb-menu">
+				<li><a th:href="@{/policy/list}">정책정보</a></li>
+				<li th:if="${session.loginUser != null}"><a th:href="@{/application/list}">신청내역</a></li>
+				<li th:if="${session.loginRole == true}"><a th:href="@{/admin/member/list}">회원관리</a></li>
+				<li th:if="${session.loginRole == true}"><a th:href="@{/admin/application/list}">신청관리</a></li>
+			</ul>
+		</div>
+	</nav>
+
+</header>
+<!-- ===================== 공통 헤더 fragment 끝 ===================== -->
+
+</body>
+</html>

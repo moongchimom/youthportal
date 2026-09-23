@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+	<meta charset="UTF-8">
+	<title th:text="${dto.title} + ' - 청년정책포탈'">정책 상세 - 청년정책포탈</title>
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+	<link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+
+	<div th:replace="~{layout/header :: header}"></div>
+
+	<!-- ===================== 정책 상세 화면 ===================== -->
+	<div class="content-wrap">
+		<div class="container" style="max-width: 720px;">
+
+			<div class="alert alert-success" th:if="${result}" th:text="${result}"></div>
+
+			<span class="badge bg-primary mb-2" th:text="${dto.category}">분류</span>
+			<span class="badge bg-secondary mb-2" th:if="${dto.region != null}" th:text="${dto.region}">지역구</span>
+			<span class="badge bg-danger mb-2" th:if="${dto.finished}">마감</span>
+			<h2 class="page-title" th:text="${dto.title}">정책 제목</h2>
+
+			<table class="table table-bordered">
+				<tbody>
+					<tr th:if="${dto.region != null}">
+						<th style="width: 160px;">지역구</th>
+						<td th:text="${dto.region}">지역구</td>
+					</tr>
+					<tr>
+						<th style="width: 160px;">지원 대상 연령</th>
+						<td th:text="${dto.targetAge}">대상 연령</td>
+					</tr>
+					<tr>
+						<th>신청 기간</th>
+						<!-- "마감" 여부는 사업기간(지원 기간)이 아니라 이 신청기간(applyEndDate) 기준으로 판단함 -->
+						<td th:if="${dto.applyStartDate == null and dto.applyEndDate == null}">상시 접수</td>
+						<td th:if="${dto.applyStartDate != null or dto.applyEndDate != null}" th:text="${dto.applyStartDate} + ' ~ ' + ${dto.applyEndDate}">기간</td>
+					</tr>
+					<tr>
+						<th>지원 기간</th>
+						<!-- 시작일/종료일이 둘 다 없으면 상시/연중 진행 정책 (온통청년 API가 그렇게 줌) -->
+						<td th:if="${dto.startDate == null and dto.endDate == null}">상시</td>
+						<td th:if="${dto.startDate != null or dto.endDate != null}" th:text="${dto.startDate} + ' ~ ' + ${dto.endDate}">기간</td>
+					</tr>
+					<tr>
+						<th>등록일</th>
+						<td th:text="${#temporals.format(dto.regDate, 'yyyy-MM-dd HH:mm')}">등록일</td>
+					</tr>
+					<tr>
+						<th>정책 내용</th>
+						<td style="white-space: pre-line;" th:text="${dto.content}">정책 내용</td>
+					</tr>
+				</tbody>
+			</table>
+
+			<div class="d-flex justify-content-between mt-4">
+				<a th:href="|/policy/list?${pageRequestDTO.link}|" class="btn btn-outline-secondary">목록으로</a>
+
+				<div>
+					<!-- 로그인한 회원만 신청 가능 -->
+					<a th:if="${session.loginUser != null}" th:href="@{/application/apply(pno=${dto.pno})}" class="btn btn-primary">신청하기</a>
+					<a th:if="${session.loginUser == null}" th:href="@{/user/login}" class="btn btn-primary">로그인 후 신청하기</a>
+
+					<!-- 수동 등록/수정/삭제 화면은 제거됨 - 정책은 공공데이터 API 가져오기로만 채워짐 -->
+				</div>
+			</div>
+
+		</div>
+	</div>
+
+	<div th:replace="~{layout/footer :: footer}"></div>
+	<div th:replace="~{layout/footer :: scripts}"></div>
+
+</body>
+</html>

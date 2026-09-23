@@ -1,0 +1,181 @@
+/* =====================================================
+   청년정책포탈 공통 스타일시트
+   정부24 등 공공포탈 느낌의 파란 톤 배색을 사용
+   ===================================================== */
+
+:root {
+	--gov-navy: #0b2d55;      /* 가장 진한 남색 (유틸바, 푸터) */
+	--gov-blue: #1b4f9c;      /* 기본 파랑 (GNB, 버튼, 강조) */
+	--gov-blue-light: #2f6db0; /* 밝은 파랑 (hover) */
+	--gov-blue-bg: #eaf1fb;   /* 연한 파랑 배경 */
+	--gov-gray-bg: #f5f6f8;   /* 페이지 바탕색 */
+	--gov-border: #dfe3e8;    /* 옅은 테두리 색 */
+}
+
+body {
+	background-color: var(--gov-gray-bg);
+	color: #222;
+}
+
+.container {
+	max-width: 1140px;
+	margin: 0 auto;
+	padding: 0 16px;
+}
+
+/* ---------------- 상단 유틸리티 바 ---------------- */
+.util-bar {
+	background-color: var(--gov-navy);
+	color: #cfe0f5;
+	font-size: 0.8rem;
+}
+.util-bar-inner {
+	display: flex;
+	justify-content: flex-end;
+	gap: 12px;
+	padding: 6px 16px;
+}
+.util-bar a {
+	color: #cfe0f5;
+	text-decoration: none;
+	margin-left: 10px;
+}
+.util-bar a:hover {
+	color: #fff;
+	text-decoration: underline;
+}
+
+/* ---------------- 메인 헤더(로고) ---------------- */
+.main-header {
+	background-color: #fff;
+	border-bottom: 1px solid var(--gov-border);
+}
+.main-header-inner {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 18px 16px;
+}
+.site-logo {
+	font-size: 1.6rem;
+	font-weight: 700;
+	color: var(--gov-navy);
+	text-decoration: none;
+}
+.header-search-link {
+	color: var(--gov-blue);
+	text-decoration: none;
+	font-weight: 500;
+	border: 1px solid var(--gov-blue);
+	border-radius: 20px;
+	padding: 6px 16px;
+}
+.header-search-link:hover {
+	background-color: var(--gov-blue);
+	color: #fff;
+}
+
+/* ---------------- GNB(전역 메뉴) ---------------- */
+.gnb {
+	background-color: var(--gov-blue);
+}
+.gnb-menu {
+	list-style: none;
+	display: flex;
+	margin: 0;
+	padding: 0;
+}
+.gnb-menu li a {
+	display: inline-block;
+	padding: 12px 18px;
+	color: #fff;
+	text-decoration: none;
+	font-weight: 500;
+}
+.gnb-menu li a:hover {
+	background-color: var(--gov-blue-light);
+}
+
+/* ---------------- 본문 콘텐츠 영역 ---------------- */
+.content-wrap {
+	padding: 32px 16px 60px;
+}
+.page-title {
+	font-size: 1.5rem;
+	font-weight: 700;
+	color: var(--gov-navy);
+	margin-bottom: 20px;
+	padding-bottom: 12px;
+	border-bottom: 3px solid var(--gov-blue);
+}
+
+/* ---------------- 검색 박스 ---------------- */
+.search-box {
+	background-color: var(--gov-blue-bg);
+	border: 1px solid var(--gov-border);
+	border-radius: 8px;
+	padding: 18px;
+	margin-bottom: 24px;
+}
+
+/* ---------------- 버튼/강조색 오버라이드 (부트스트랩 기본 파랑 -> 정부 톤 파랑) ---------------- */
+.btn-primary {
+	background-color: var(--gov-blue);
+	border-color: var(--gov-blue);
+}
+.btn-primary:hover,
+.btn-primary:focus {
+	background-color: var(--gov-navy);
+	border-color: var(--gov-navy);
+}
+.bg-primary {
+	background-color: var(--gov-blue) !important;
+}
+.text-primary {
+	color: var(--gov-blue) !important;
+}
+.pagination .page-link {
+	color: var(--gov-blue);
+}
+.pagination .page-item.active .page-link {
+	background-color: var(--gov-blue);
+	border-color: var(--gov-blue);
+}
+
+/* ---------------- 상태 배지 ---------------- */
+.badge-status-접수중 { background-color: #6c757d; }
+.badge-status-승인 { background-color: #1b8a4b; }
+.badge-status-반려 { background-color: #c0392b; }
+.badge-status-취소 { background-color: #9aa1a9; }
+
+/* ---------------- 정책 카드 ---------------- */
+.policy-card {
+	border: 1px solid var(--gov-border);
+	border-radius: 8px;
+	background-color: #fff;
+	transition: box-shadow .15s ease;
+}
+.policy-card:hover {
+	box-shadow: 0 4px 12px rgba(11, 45, 85, 0.12);
+}
+
+/* ---------------- 푸터 ---------------- */
+.site-footer {
+	background-color: var(--gov-navy);
+	color: #b9c9de;
+	margin-top: 40px;
+}
+.footer-inner {
+	padding: 28px 16px;
+	text-align: center;
+}
+.footer-title {
+	font-weight: 700;
+	color: #fff;
+	margin-bottom: 6px;
+}
+.footer-desc,
+.footer-copy {
+	font-size: 0.85rem;
+	margin: 2px 0;
+}

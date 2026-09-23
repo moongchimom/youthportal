@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<!-- ===================== 공통 페이지네이션 fragment 시작 ===================== -->
+<!-- responseDTO: PageResponseDTO(현재 페이지/블록 시작-끝/이전-다음 블록 여부), pageRequestDTO: 검색조건 유지용, baseUrl: 목록 경로 -->
+<!-- th:replace는 호출부의 <div class="mt-4">까지 통째로 fragment 내용으로 바뀌어버려서 그쪽 mt-4는 적용되지 않음 - 여백은 여기 직접 지정 -->
+<nav th:fragment="pagination(responseDTO, pageRequestDTO, baseUrl)" class="mt-5" aria-label="페이지 이동" th:if="${responseDTO != null}">
+	<ul class="pagination justify-content-center">
+
+		<!-- 이전 블록 이동 -->
+		<li class="page-item" th:classappend="${!responseDTO.prev} ? 'disabled'">
+			<a class="page-link" th:href="|${baseUrl}?${pageRequestDTO.link}&page=${responseDTO.start - 1}|">이전</a>
+		</li>
+
+		<!-- 현재 블록에 속한 페이지 번호들 -->
+		<li class="page-item" th:each="p : ${#numbers.sequence(responseDTO.start, responseDTO.end)}"
+			th:classappend="${p == responseDTO.page} ? 'active'">
+			<a class="page-link" th:href="|${baseUrl}?${pageRequestDTO.link}&page=${p}|" th:text="${p}">1</a>
+		</li>
+
+		<!-- 다음 블록 이동 -->
+		<li class="page-item" th:classappend="${!responseDTO.next} ? 'disabled'">
+			<a class="page-link" th:href="|${baseUrl}?${pageRequestDTO.link}&page=${responseDTO.end + 1}|">다음</a>
+		</li>
+
+	</ul>
+</nav>
+<!-- ===================== 공통 페이지네이션 fragment 끝 ===================== -->
+
+</body>
+</html>

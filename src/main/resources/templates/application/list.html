@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+	<meta charset="UTF-8">
+	<title>신청내역 - 청년정책포탈</title>
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+	<link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+
+	<div th:replace="~{layout/header :: header}"></div>
+
+	<!-- ===================== 내 신청내역 목록 화면 ===================== -->
+	<div class="content-wrap">
+		<div class="container">
+			<h2 class="page-title">내 신청내역</h2>
+
+			<div class="alert alert-success" th:if="${result}" th:text="${result}"></div>
+
+			<!-- 비로그인 상태 안내 (컨트롤러가 void 반환이라 리다이렉트 대신 이 화면에 안내문을 표시) -->
+			<div class="alert alert-warning" th:if="${error}">
+				<span th:text="${error}"></span>
+				<a th:href="@{/user/login}">로그인 하러가기</a>
+			</div>
+
+			<table class="table table-hover" th:if="${responseDTO != null and not #lists.isEmpty(responseDTO.dtoList)}">
+				<thead class="table-light">
+					<tr>
+						<th>정책명</th>
+						<th>신청일</th>
+						<th>상태</th>
+						<th>상세</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr th:each="app : ${responseDTO.dtoList}">
+						<td th:text="${app.policyTitle}">정책명</td>
+						<td th:text="${#temporals.format(app.applyDate, 'yyyy-MM-dd HH:mm')}">신청일</td>
+						<td>
+							<span class="badge" th:classappend="'badge-status-' + ${app.status}" th:text="${app.status}">상태</span>
+						</td>
+						<td>
+							<a th:href="@{/application/read(appNo=${app.appNo})}" class="btn btn-sm btn-outline-primary">상세보기</a>
+						</td>
+					</tr>
+				</tbody>
+			</table>
+
+			<div class="alert alert-secondary" th:if="${responseDTO != null and #lists.isEmpty(responseDTO.dtoList)}">
+				신청한 정책이 없습니다.
+			</div>
+
+			<div class="mt-4" th:if="${responseDTO != null}" th:replace="~{layout/pagination :: pagination(${responseDTO}, ${pageRequestDTO}, '/application/list')}"></div>
+
+		</div>
+	</div>
+
+	<div th:replace="~{layout/footer :: footer}"></div>
+	<div th:replace="~{layout/footer :: scripts}"></div>
+
+</body>
+</html>

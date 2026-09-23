@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- MyBatis 매퍼 XML 문서 선언 -->
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- namespace는 반드시 매핑되는 인터페이스의 전체 경로와 일치해야 함 -->
+<mapper namespace="kr.or.oti.youthportal.mapper.ApplicationDAO">
+
+	<!-- 신청/정책/회원 조인 결과를 ApplicationDTO로 매핑할 때 공통으로 재사용하는 SELECT 컬럼 목록 -->
+	<sql id="applicationColumns">
+		a.APP_NO AS APP_NO,
+		a.PNO AS PNO,
+		p.TITLE AS POLICY_TITLE,
+		a.USER_ID AS USER_ID,
+		u.NAME AS USER_NAME,
+		a.STATUS AS STATUS,
+		a.APPLY_DATE AS APPLY_DATE,
+		a.UPDATE_DATE AS UPDATE_DATE,
+		a.REASON AS REASON
+	</sql>
+
+	<!-- 신청 등록: APP_NO는 IDENTITY 자동채번 (시퀀스 없음). keyColumn 명시 필요 - 없으면 Oracle 드라이버가 ROWID를 반환해 NumberFormatException 발생 -->
+	<!-- 첨부파일은 더 이상 이 테이블에 저장하지 않음 - APPLICATION_FILE 테이블에 1:N으로 별도 저장 (ApplicationFileDAO 참고) -->
+	<insert id="insertApplication" parameterType="kr.or.oti.youthportal.domain.Application" useGeneratedKeys="true" keyProperty="appNo" keyColumn="APP_NO">
+		INSERT INTO APPLICATION
+			(PNO, USER_ID, REASON, STATUS, APPLY_DATE)
+		VALUES
+			(#{pno}, #{userId}, #{reason,jdbcType=VARCHAR}, #{status}, #{applyDate})
+	</insert>
+
+	<!-- 신청 번호로 상세 조회 (정책명/회원명 포함) -->
+	<select id="selectById" parameterType="long" resultType="kr.or.oti.youthportal.dto.ApplicationDTO">
+		SELECT <include refid="applicationColumns" />
+		FROM APPLICATION a, POLICY p, USERS u
+		WHERE a.PNO = p.PNO
+		  AND a.USER_ID = u.USER_ID
+		  AND a.APP_NO = #{appNo}
+	</select>
+
+	<!-- 특정 회원의 신청 목록 조회 (최신 신청순, 페이징) -->
+	<select id="selectByUserId" resultType="kr.or.oti.youthportal.dto.ApplicationDTO">
+		SELECT <include refid="applicationColumns" />
+		FROM APPLICATION a, POLICY p, USERS u
+		WHERE a.PNO = p.PNO
+		  AND a.USER_ID = u.USER_ID
+		  AND a.USER_ID = #{userId}
+		ORDER BY a.APPLY_DATE DESC
+		OFFSET #{pageRequestDTO.skip} ROWS FETCH NEXT #{pageRequestDTO.size} ROWS ONLY
+	</select>
+
+	<!-- 특정 회원의 신청 전체 건수 조회 (페이징 계산용) -->
+	<select id="selectCountByUserId" parameterType="string" resultType="int">
+		SELECT COUNT(*)
+		FROM APPLICATION
+		WHERE USER_ID = #{userId}
+	</select>
+
+	<!-- 관리자용 전체 신청 목록 조회: 검색어는 회원아이디/이름/정책제목에 OR, 신청일 범위 필터, 페이징 -->
+	<!-- 참고: PageRequestDTO의 types/finished는 신청 목록 조회에는 의미가 없어 사용하지 않음 -->
+	<select id="selectAllApplications" parameterType="kr.or.oti.youthportal.dto.PageRequestDTO" resultType="kr.or.oti.youthportal.dto.ApplicationDTO">
+		SELECT <include refid="applicationColumns" />
+		FROM APPLICATION a, POLICY p, USERS u
+		<where>
+			a.PNO = p.PNO
+			AND a.USER_ID = u.USER_ID
+			<if test="keyword != null and keyword != ''">
+				AND (
+					a.USER_ID LIKE '%' || #{keyword} || '%'
+					OR u.NAME LIKE '%' || #{keyword} || '%'
+					OR p.TITLE LIKE '%' || #{keyword} || '%'
+				)
+			</if>
+			<if test="from != null">
+				AND a.APPLY_DATE &gt;= #{from}
+			</if>
+			<if test="to != null">
+				AND a.APPLY_DATE &lt; #{to} + 1
+			</if>
+		</where>
+		ORDER BY a.APPLY_DATE DESC
+		OFFSET #{skip} ROWS FETCH NEXT #{size} ROWS ONLY
+	</select>
+
+	<!-- 관리자용 전체 신청 건수 조회 (목록조회와 동일한 검색조건) -->
+	<select id="selectAllCount" parameterType="kr.or.oti.youthportal.dto.PageRequestDTO" resultType="int">
+		SELECT COUNT(*)
+		FROM APPLICATION a, POLICY p, USERS u
+		<where>
+			a.PNO = p.PNO
+			AND a.USER_ID = u.USER_ID
+			<if test="keyword != null and keyword != ''">
+				AND (
+					a.USER_ID LIKE '%' || #{keyword} || '%'
+					OR u.NAME LIKE '%' || #{keyword} || '%'
+					OR p.TITLE LIKE '%' || #{keyword} || '%'
+				)
+			</if>
+			<if test="from != null">
+				AND a.APPLY_DATE &gt;= #{from}
+			</if>
+			<if test="to != null">
+				AND a.APPLY_DATE &lt; #{to} + 1
+			</if>
+		</where>
+	</select>
+
+	<!-- 신청 상태 변경 (관리자 승인/반려, 본인 취소 공용), 변경일시도 함께 갱신 -->
+	<update id="updateStatus">
+		UPDATE APPLICATION
+		SET STATUS = #{status},
+			UPDATE_DATE = SYSTIMESTAMP
+		WHERE APP_NO = #{appNo}
+	</update>
+
+</mapper>
